@@ -1,20 +1,20 @@
 export interface Env {
   AI: any;
-  CHAT_STORAGE: KVNamespace;
+  CHAT_STORAGE: any;
   AUTORAG_NAMESPACE: string;
 }
 
 export class ChatSession {
-  private sessions: Map<WebSocket, { userId: string; projectId?: string }> = new Map();
-  private state: DurableObjectState;
+  private sessions: Map<any, { userId: string; projectId?: string }> = new Map();
+  private state: any;
   private env: Env;
 
-  constructor(state: DurableObjectState, env: Env) {
+  constructor(state: any, env: Env) {
     this.state = state;
     this.env = env;
   }
 
-  async fetch(request: Request): Promise<Response> {
+  async fetch(request: any): Promise<any> {
     // Handle WebSocket upgrade
     if (request.headers.get('Upgrade') === 'websocket') {
       return this.handleWebSocket(request);
@@ -23,12 +23,12 @@ export class ChatSession {
     return new Response('Expected WebSocket', { status: 400 });
   }
 
-  private async handleWebSocket(request: Request): Promise<Response> {
-    const webSocketPair = new WebSocketPair();
+  private async handleWebSocket(request: any): Promise<any> {
+    const webSocketPair = new (WebSocketPair as any)();
     const [client, server] = Object.values(webSocketPair);
 
     // Accept the WebSocket connection
-    server.accept();
+    (server as any).accept();
 
     // Parse user/project info from URL or headers (for now, simple implementation)
     const url = new URL(request.url);
@@ -39,13 +39,13 @@ export class ChatSession {
     this.sessions.set(server, { userId, projectId });
 
     // Handle incoming messages
-    server.addEventListener('message', async (event) => {
+    (server as any).addEventListener('message', async (event: any) => {
       try {
         const message = JSON.parse(event.data as string);
-        await this.processMessage(message, server, userId, projectId);
+        await this.processMessage(message, server as any, userId, projectId);
       } catch (error) {
         console.error('Error processing message:', error);
-        server.send(JSON.stringify({
+        (server as any).send(JSON.stringify({
           type: 'error',
           data: { message: 'Failed to process message' }
         }));
@@ -53,19 +53,19 @@ export class ChatSession {
     });
 
     // Handle connection close
-    server.addEventListener('close', () => {
+    (server as any).addEventListener('close', () => {
       this.sessions.delete(server);
     });
 
     return new Response(null, {
       status: 101,
-      webSocket: client,
+      webSocket: client as any,
     });
   }
 
   private async processMessage(
     message: any,
-    socket: WebSocket,
+    socket: any,
     userId: string,
     projectId?: string
   ): Promise<void> {
@@ -122,7 +122,7 @@ export class ChatSession {
     });
   }
 
-  private async streamResponse(stream: ReadableStream, socket: WebSocket): Promise<void> {
+  private async streamResponse(stream: ReadableStream, socket: any): Promise<void> {
     const reader = stream.getReader();
     let fullContent = '';
 
