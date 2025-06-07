@@ -7,6 +7,11 @@ compatibility_flags = ["nodejs_compat"]
 [ai]
 binding = "AI"
 
+# Vectorize index binding
+[[vectorize]]
+binding = "autorag-ladders-rag"
+index_name = "autorag-ladders-rag"
+
 # KV storage for chat history
 [[kv_namespaces]]
 binding = "CHAT_STORAGE"

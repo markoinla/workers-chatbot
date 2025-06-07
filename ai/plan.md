@@ -237,10 +237,12 @@ const response = await env.AI.autorag("ladders-rag").aiSearch({
 - ✅ Validate streaming works (mock streaming implemented)
 - ✅ **BONUS**: KV namespaces created, AI binding configured, WebSocket ready
 
-#### **Step 4: Integrate Real AutoRAG (1 hour)**
-- Replace mock AutoRAG with real ladders-rag integration
-- Test with actual user/project scope filtering
-- Validate multi-tenant isolation
+#### ✅ **Step 4: Integrate Real AutoRAG - COMPLETED!** (1 hour)
+- ✅ Replace mock AutoRAG with real ladders-rag integration using official API
+- ✅ Test with actual user/project scope filtering (`demo-user-123/demo-project-456/`)
+- ✅ Validate multi-tenant isolation with folder-based filtering
+- ✅ **BONUS**: KV message persistence, graceful fallback, streaming support
+- ✅ **API COMPLIANCE**: Uses official Cloudflare AutoRAG Workers Binding syntax
 
 #### **Step 5: Build Embed Script (1 hour)**
 - Create minimal iframe embedding script

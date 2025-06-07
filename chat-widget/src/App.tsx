@@ -2,11 +2,11 @@ import { ChatPanel } from '@/components/ChatPanel'
 import { useWebSocket } from '@/hooks/useWebSocket'
 
 function App() {
-  // Demo configuration - this will come from parent window
+  // Real configuration for testing
   const config = {
-    userId: 'demo-user-123',
-    projectId: 'demo-project-456',
-    websocketUrl: 'ws://localhost:8787/socket/demo-session-123', // Cloudflare Worker URL
+    userId: 'user-123',
+    projectId: 'webhook-test-1749327626988',
+    websocketUrl: 'wss://chat-worker.m-6bb.workers.dev/socket/user-123-session', // Production Cloudflare Worker URL
   }
 
   // Initialize WebSocket connection
