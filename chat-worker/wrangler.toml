@@ -10,8 +10,8 @@ binding = "AI"
 # KV storage for chat history
 [[kv_namespaces]]
 binding = "CHAT_STORAGE"
-id = "chat_storage_namespace"
-preview_id = "chat_storage_preview"
+id = "059ec26d69544abfb8a28c67063c98d4"
+preview_id = "1145d6258ade4938a9374819e1232505"
 
 # Durable Object for WebSocket sessions
 [[durable_objects.bindings]]

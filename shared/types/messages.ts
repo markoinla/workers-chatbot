@@ -7,6 +7,7 @@ export interface ChatMessage {
   timestamp: number;
   userId: string;
   projectId?: string;
+  status?: 'sending' | 'sent' | 'streaming' | 'error';
 }
 
 export interface EmbedConfig {
