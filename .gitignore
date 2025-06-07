@@ -48,6 +48,7 @@ wrangler.toml.bak
 **/node_modules/@cloudflare/workerd-darwin-*/
 **/node_modules/@cloudflare/workerd-linux-*/
 **/node_modules/@cloudflare/workerd-windows-*/
+**/node_modules/workerd/
 **/bin/workerd
 workerd
 
