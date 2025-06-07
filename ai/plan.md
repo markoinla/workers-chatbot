@@ -10,67 +10,62 @@ Transform the open-source WorkersAI demo into a fully-edge, multi-tenant chat as
 - **Benefits**: Clean separation, follows Cloudflare best practices, achieves size/latency requirements
 - **Trade-offs**: New codebase separate from existing protobuf structure, but maintains focus and simplicity
 
-## Phase 1: Core Infrastructure Setup (Week 1)
+## ✅ Phase 1: Core Infrastructure Setup (Week 1) - **IN PROGRESS**
 
-### 1.1 Project Structure Setup
+### ✅ 1.1 Project Structure Setup - **COMPLETED**
 ```
 workers-chatbot/
-├── chat-embed/
-│   ├── src/
-│   │   └── embed.js              # Vanilla JS embed script
-│   ├── dist/                     # Built embed script
-│   └── package.json
-├── chat-widget/
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── ChatBubble.tsx    # Collapsible chat button
-│   │   │   ├── ChatPanel.tsx     # Main chat interface
-│   │   │   ├── MessageList.tsx   # Message rendering
-│   │   │   └── StreamingMessage.tsx # Token-by-token display
-│   │   ├── hooks/
-│   │   │   ├── useWebSocket.ts   # WebSocket management
-│   │   │   ├── useAuth.ts        # JWT validation
-│   │   │   └── useChat.ts        # Chat state management
-│   │   ├── types/
-│   │   │   └── chat.ts           # TypeScript interfaces
-│   │   ├── utils/
-│   │   │   ├── postMessage.ts    # Cross-frame communication
-│   │   │   └── jwt.ts            # JWT utilities
-│   │   ├── App.tsx
-│   │   └── main.tsx
-│   ├── public/
-│   ├── vite.config.ts
-│   ├── tailwind.config.js
-│   └── package.json
-├── chat-worker/
-│   ├── src/
-│   │   ├── index.ts              # Main Worker entry
-│   │   ├── websocket.ts          # WebSocket handler
-│   │   ├── durable-object.ts     # Chat session DO
-│   │   ├── auth.ts               # JWT verification
-│   │   ├── autorag.ts            # AutoRAG integration
-│   │   └── types.ts              # Shared types
-│   ├── wrangler.toml
-│   └── package.json
-└── shared/
+├── chat-embed/               ✅ Created
+│   ├── src/                  ✅ Created
+│   │   └── embed.js          ❌ TODO
+│   ├── dist/                 ✅ Created
+│   └── package.json          ❌ TODO
+├── chat-widget/              ✅ Created
+│   ├── src/                  ✅ Created
+│   │   ├── components/       ✅ Created
+│   │   ├── hooks/            ✅ Created
+│   │   ├── types/            ✅ Created
+│   │   ├── utils/            ✅ Created
+│   │   ├── stores/           ✅ Created
+│   │   ├── App.tsx           ❌ TODO
+│   │   └── main.tsx          ❌ TODO
+│   ├── public/               ✅ Created
+│   ├── vite.config.ts        ✅ Created
+│   ├── tailwind.config.js    ❌ TODO
+│   └── package.json          ✅ Created
+├── chat-worker/              ✅ Created
+│   ├── src/                  ✅ Created
+│   │   ├── index.ts          ✅ Created (basic routing)
+│   │   ├── websocket.ts      ❌ TODO
+│   │   ├── durable-object.ts ✅ Created (with mock AutoRAG)
+│   │   ├── auth.ts           ❌ TODO (deferred)
+│   │   ├── autorag.ts        ❌ TODO
+│   │   └── types.ts          ❌ TODO
+│   ├── wrangler.toml         ✅ Created
+│   └── package.json          ✅ Created
+└── shared/                   ✅ Created
     └── types/
-        └── messages.ts           # Cross-component message types
+        └── messages.ts       ✅ Created
 ```
 
-### 1.2 Development Environment Setup
-- **Tools**: Node.js 18+, Wrangler CLI, Vite, TypeScript
-- **Commands to run**:
-  ```bash
-  npm create cloudflare@latest chat-worker -- --type=worker-typescript
-  npm create vite@latest chat-widget -- --template=react-ts
-  ```
+### 🔄 1.2 Development Environment Setup - **PARTIALLY COMPLETED**
+- ✅ **Tools**: Node.js 18+, Wrangler CLI, Vite, TypeScript
+- ✅ **Dependencies installed** for chat-worker and chat-widget
+- ❌ **TODO**: shadcn/ui setup and component installation
+- ❌ **TODO**: Root workspace package.json configuration
 
-### 1.3 Configuration Files
-- **chat-worker/wrangler.toml**: AI binding, KV namespace, Durable Object class
-- **chat-widget/vite.config.ts**: Build for iframe, transparent background support
-- **Root package.json**: Workspace configuration for monorepo structure
+### 🔄 1.3 Configuration Files - **PARTIALLY COMPLETED**
+- ✅ **chat-worker/wrangler.toml**: AI binding, KV namespace, Durable Object class
+- ✅ **chat-worker/tsconfig.json**: TypeScript configuration
+- ✅ **chat-widget/vite.config.ts**: Build for iframe, transparent background support
+- ❌ **TODO**: chat-widget/tailwind.config.js (shadcn/ui compatible)
+- ❌ **TODO**: chat-widget/postcss.config.js
+- ❌ **TODO**: chat-widget/tsconfig.json
+- ❌ **TODO**: chat-widget/components.json (shadcn config)
+- ❌ **TODO**: chat-widget/lib/utils.ts (shadcn utilities)
+- ❌ **TODO**: Root package.json workspace configuration
 
-## Phase 2: Embed Script Implementation (Week 1-2)
+## ❌ Phase 2: Embed Script Implementation (Week 1-2) - **NOT STARTED**
 
 ### 2.1 Embed Script Core (`chat-embed/src/embed.js`)
 **Size Target**: <3kB gzipped
@@ -106,27 +101,38 @@ workers-chatbot/
 - `RESIZE`: Adapt to content changes
 - `ERROR`: Handle authentication/connection errors
 
-## Phase 3: Chat Widget Development (Week 2-3)
+## ❌ Phase 3: Chat Widget Development (Week 2-3) - **NOT STARTED**
 
-### 3.1 React Components Architecture
+### 3.1 React Components Architecture (shadcn/ui-based)
 
 **ChatBubble.tsx**:
-- 56×56px collapsed state
-- Smooth expand/collapse animations
+- 56×56px collapsed state using shadcn Button component
+- Smooth expand/collapse animations with Framer Motion
 - Pointer events management
-- Notification badges for new messages
+- Badge component for new message notifications
+- Tooltip component for hover states
 
 **ChatPanel.tsx**:
-- 360×480px expanded view
-- Transparent background support
-- Drag functionality
-- Responsive layout
+- 360×480px expanded view using shadcn Card component
+- Transparent background support with backdrop-blur
+- Drag functionality with shadcn's drag utilities
+- Responsive layout using shadcn Container
+- ScrollArea component for message overflow
 
 **StreamingMessage.tsx**:
-- Token-by-token rendering
-- Typing indicators
-- Markdown support
-- Copy functionality
+- Token-by-token rendering with Typography components
+- Skeleton components for loading states
+- Markdown support using react-markdown + shadcn styling
+- Copy functionality with shadcn Button + Clipboard API
+- Avatar component for user/assistant icons
+
+**Additional shadcn Components to Use**:
+- **Input**: Message input field with proper focus management
+- **Dialog**: For settings/preferences
+- **Separator**: Between messages
+- **Alert**: For error states
+- **Progress**: For long operations
+- **Popover**: For additional controls
 
 ### 3.2 WebSocket Integration
 **File**: `src/hooks/useWebSocket.ts`
@@ -142,49 +148,126 @@ workers-chatbot/
 - Authentication state
 - UI state (open/closed, dragging)
 
-## Phase 4: Cloudflare Worker Backend (Week 3-4)
+## 🔄 Phase 4: Cloudflare Worker Backend (Week 3-4) - **PARTIALLY COMPLETED**
 
-### 4.1 Main Worker (`chat-worker/src/index.ts`)
+### 🔄 4.1 Main Worker (`chat-worker/src/index.ts`) - **BASIC VERSION COMPLETED**
 **Endpoints**:
-- `GET /socket/<uuid>`: WebSocket upgrade
-- `POST /health`: Health check
-- `GET /embed.js`: Serve embed script
+- ✅ `GET /socket/<uuid>`: WebSocket upgrade (basic implementation)
+- ✅ `POST /health`: Health check
+- ✅ `GET /embed.js`: Serve embed script (placeholder)
 
 **Key Features**:
-- JWT verification middleware
-- Rate limiting
-- CORS handling
-- Error logging
+- ✅ CORS handling
+- ❌ **TODO**: JWT verification middleware (deferred)
+- ❌ **TODO**: Rate limiting
+- ❌ **TODO**: Error logging
 
-### 4.2 Durable Object Implementation (`src/durable-object.ts`)
+### 🔄 4.2 Durable Object Implementation (`src/durable-object.ts`) - **MOCK VERSION COMPLETED**
 **Responsibilities**:
-- WebSocket connection management
-- Message persistence (KV storage)
-- AutoRAG query orchestration
-- Streaming response handling
+- ✅ WebSocket connection management
+- ❌ **TODO**: Message persistence (KV storage)
+- 🔄 AutoRAG query orchestration (mock implementation)
+- ✅ Streaming response handling
 
 **Critical Methods**:
 ```typescript
 class ChatSession {
-  async handleWebSocket(request: Request): Promise<Response>
-  async processMessage(message: string, userId: string, projectId: string)
-  async queryAutoRAG(query: string, projectId: string): Promise<ReadableStream>
-  async persistMessage(message: ChatMessage): Promise<void>
+  ✅ async handleWebSocket(request: Request): Promise<Response>
+  🔄 async processMessage(message: string, userId: string, projectId: string) // mock
+  🔄 async queryAutoRAG(query: string, projectId: string): Promise<ReadableStream> // mock
+  ❌ async persistMessage(message: ChatMessage): Promise<void>
 }
 ```
 
-### 4.3 AutoRAG Integration (`src/autorag.ts`)
+### ❌ 4.3 AutoRAG Integration (`src/autorag.ts`) - **TODO**
 **Implementation**:
 ```typescript
-const response = await env.AI.autorag("paintmapper").aiSearch({
+const response = await env.AI.autorag("ladders-rag").aiSearch({
   query: userMessage,
-  filters: { folder: `${projectId}/` },
+  filters: { folder: `${userId}/${projectId}/` }, // Updated scope
   stream: true,
   maxResults: 5
 });
 ```
 
 **Security**: Folder-level filtering ensures multi-tenant isolation
+
+---
+
+## 🎯 **CURRENT STATUS & RECOMMENDED NEXT STEPS**
+
+### **✅ What We've Completed:**
+1. Basic project structure and directories
+2. Package management and dependencies
+3. Basic Cloudflare Worker with mock WebSocket handling
+4. Durable Object with mock streaming responses
+5. TypeScript configuration for worker
+6. Comprehensive .gitignore
+
+### **🔄 What's In Progress:**
+1. Phase 1 configuration files (Tailwind, PostCSS, workspace setup)
+2. Basic Durable Object (needs real AutoRAG integration)
+
+### **🎯 RECOMMENDED NEXT STEPS (Priority Order):**
+
+#### **Step 1: Complete Phase 1 Setup (45 mins)**
+- Create root workspace package.json
+- Add Tailwind/PostCSS configuration to chat-widget (shadcn compatible)
+- Add TypeScript configuration to chat-widget
+- Initialize shadcn/ui in chat-widget
+- Install core shadcn components (Button, Card, Input, Badge, etc.)
+- Create basic HTML template with shadcn theme support
+
+#### **Step 2: Build Minimal Working React Widget (2 hours)**
+- Create basic App.tsx and main.tsx with shadcn theme provider
+- Build ChatBubble component using shadcn Button + Badge
+- Build ChatPanel component using shadcn Card + ScrollArea
+- Create MessageInput using shadcn Input component
+- Add basic WebSocket connection hook
+- Test WebSocket connection to worker
+
+#### **Step 3: Test End-to-End Flow (1 hour)**
+- Deploy worker to test environment
+- Test widget → worker → mock response flow
+- Validate streaming works
+
+#### **Step 4: Integrate Real AutoRAG (1 hour)**
+- Replace mock AutoRAG with real ladders-rag integration
+- Test with actual user/project scope filtering
+- Validate multi-tenant isolation
+
+#### **Step 5: Build Embed Script (1 hour)**
+- Create minimal iframe embedding script
+- Test cross-frame communication
+- Validate transparent background
+
+**Total estimated time to working prototype: ~5.5-6.5 hours**
+
+## 🎨 **SHADCN/UI COMPONENT MAPPING**
+
+### **Core Chat Components**:
+- **ChatBubble**: `Button` + `Badge` + `Tooltip`
+- **ChatPanel**: `Card` + `ScrollArea` + `Separator`
+- **Message Input**: `Input` + `Button` (send)
+- **Messages**: `Avatar` + `Typography` + `Separator`
+- **Loading States**: `Skeleton` + `Progress`
+- **Error States**: `Alert` + `AlertDescription`
+
+### **Enhanced Features**:
+- **Settings**: `Dialog` + `Switch` + `Slider`
+- **File Upload**: `Input[type=file]` + `Progress`
+- **Mentions/Commands**: `Popover` + `Command`
+- **Theme Toggle**: `Button` + `DropdownMenu`
+
+### **Benefits of shadcn/ui**:
+✅ **Accessibility**: ARIA-compliant components out of the box  
+✅ **Performance**: Tree-shakeable, optimized bundle size  
+✅ **Customization**: CSS variables for easy theming  
+✅ **TypeScript**: Full type safety  
+✅ **Modern**: Uses Radix primitives + Tailwind  
+✅ **Consistency**: Professional design system  
+
+Would you like me to start with **Step 1 (Complete Phase 1 Setup + shadcn/ui initialization)**?
 
 ## Phase 5: Security & Authentication (Week 4)
 
@@ -212,14 +295,16 @@ const response = await env.AI.autorag("paintmapper").aiSearch({
 ### 6.1 Bundle Size Optimization
 **Targets**:
 - Embed script: <3kB gzipped
-- Widget bundle: <100kB gzipped
+- Widget bundle: <120kB gzipped (adjusted for shadcn/ui)
 - Total: <150kB including dependencies
 
 **Techniques**:
-- Tree shaking with Vite
+- Tree shaking with Vite (shadcn components are tree-shakeable)
 - Code splitting for non-critical features
-- SVG icons instead of icon fonts
-- Minimal Tailwind CSS build
+- Use shadcn's optimized Lucide icons instead of icon fonts
+- Minimal Tailwind CSS build (shadcn uses CSS variables efficiently)
+- Only import needed shadcn components
+- Bundle analyzer to monitor shadcn component impact
 
 ### 6.2 Latency Optimization
 **Target**: ≤400ms first-token latency
