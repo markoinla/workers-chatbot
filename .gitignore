@@ -1,11 +1,26 @@
 # Dependencies
 node_modules/
 */node_modules/
+**/node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+
+# Package manager lock files (large files)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+shrinkwrap.yaml
+
+# Package manager caches
+.npm/
+.yarn/
+.pnpm/
+.pnpm-store/
+yarn-error.log
+.yarn-integrity
 
 # Build outputs
 dist/
@@ -27,6 +42,14 @@ build/
 .wrangler/
 .wrangler.toml.bak
 wrangler.toml.bak
+
+# Cloudflare workerd binaries (very large!)
+**/node_modules/@cloudflare/workerd-*/
+**/node_modules/@cloudflare/workerd-darwin-*/
+**/node_modules/@cloudflare/workerd-linux-*/
+**/node_modules/@cloudflare/workerd-windows-*/
+**/bin/workerd
+workerd
 
 # React/Vite
 # Logs
@@ -55,17 +78,27 @@ jspm_packages/
 # Optional npm cache directory
 .npm
 
-# Optional eslint cache
+# Tool caches (can be large)
 .eslintcache
-
-# Optional stylelint cache
 .stylelintcache
+.prettiercache
+.swc/
+.babel-cache/
+.jest-cache/
+.rollup.cache/
+.turbo/
+.nx/cache/
+.rush/temp/
 
-# Microbundle cache
+# Bundler caches
 .rpt2_cache/
 .rts2_cache_cjs/
 .rts2_cache_es/
 .rts2_cache_umd/
+.webpack/
+.vite/
+*.map
+*.map.js
 
 # Optional REPL history
 .node_repl_history
@@ -124,9 +157,38 @@ Thumbs.db
 # Production
 /build
 
-# Misc
+# Large binary/archive files
 *.tgz
 *.tar.gz
+*.zip
+*.rar
+*.7z
+*.dmg
+*.iso
 
-# Debug
-debug.log 
+# Large media files (if any)
+*.mp4
+*.avi
+*.mov
+*.wmv
+*.flv
+*.webm
+*.mkv
+
+# Large document files
+*.pdf
+*.doc
+*.docx
+*.ppt
+*.pptx
+
+# Database files
+*.sqlite
+*.sqlite3
+*.db
+
+# Debug and profiling
+debug.log
+*.prof
+*.heapsnapshot
+*.cpuprofile 
