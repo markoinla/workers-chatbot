@@ -1,0 +1,27 @@
+name = "chat-worker"
+main = "src/index.ts"
+compatibility_date = "2024-01-15"
+compatibility_flags = ["nodejs_compat"]
+
+# AI binding for AutoRAG
+[ai]
+binding = "AI"
+
+# KV storage for chat history
+[[kv_namespaces]]
+binding = "CHAT_STORAGE"
+id = "chat_storage_namespace"
+preview_id = "chat_storage_preview"
+
+# Durable Object for WebSocket sessions
+[[durable_objects.bindings]]
+name = "CHAT_SESSION"
+class_name = "ChatSession"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["ChatSession"]
+
+# Environment variables (to be set via wrangler secret)
+[vars]
+AUTORAG_NAMESPACE = "ladders-rag" 
