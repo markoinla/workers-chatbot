@@ -4,6 +4,8 @@ import type { ChatState, ChatMessage, ConnectionStatus } from '@/types/chat'
 interface ChatStore extends ChatState {
   // Actions
   toggleChat: () => void
+  toggleExpanded: () => void
+  setMode: (mode: 'popup' | 'sidebar') => void
   setConnecting: (connecting: boolean) => void
   setConnected: (connected: boolean) => void
   setError: (error: string | undefined) => void
@@ -16,6 +18,8 @@ interface ChatStore extends ChatState {
 export const useChatStore = create<ChatStore>()((set, get) => ({
   // Initial state
   isOpen: false,
+  isExpanded: false,
+  mode: 'popup',
   isConnected: false,
   isConnecting: false,
   messages: [],
@@ -24,6 +28,10 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
 
   // Actions
   toggleChat: () => set((state) => ({ isOpen: !state.isOpen })),
+  
+  toggleExpanded: () => set((state) => ({ isExpanded: !state.isExpanded })),
+  
+  setMode: (mode: 'popup' | 'sidebar') => set({ mode }),
   
   setConnecting: (connecting: boolean) => set({ isConnecting: connecting }),
   

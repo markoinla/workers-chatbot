@@ -6,6 +6,18 @@ import { Bot, User } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
+// Basic content cleanup only - no aggressive preprocessing
+function cleanContent(content: string): string {
+  return content
+    // Only decode HTML entities that might come from the backend
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .trim()
+}
+
 interface ChatBubbleProps {
   message: ChatMessage
   className?: string
@@ -47,35 +59,28 @@ export function ChatBubble({ message, className }: ChatBubbleProps) {
               {message.content}
             </div>
           ) : (
-            <div className="markdown-content">
+            <div className="markdown-content text-gray-900 prose prose-sm max-w-none">
               <ReactMarkdown 
                 remarkPlugins={[remarkGfm]}
                 components={{
-                // Custom styling for markdown elements
-                h1: ({ children }) => <h1 className="text-base font-bold mb-2 mt-1">{children}</h1>,
-                h2: ({ children }) => <h2 className="text-sm font-bold mb-1 mt-2">{children}</h2>,
-                h3: ({ children }) => <h3 className="text-sm font-semibold mb-1 mt-1">{children}</h3>,
-                p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>,
-                ul: ({ children }) => <ul className="list-disc list-inside ml-3 mb-2 space-y-1">{children}</ul>,
-                ol: ({ children }) => <ol className="list-decimal list-inside ml-3 mb-2 space-y-1">{children}</ol>,
-                li: ({ children }) => <li className="leading-relaxed">{children}</li>,
-                strong: ({ children }) => <strong className="font-semibold text-gray-900">{children}</strong>,
-                em: ({ children }) => <em className="italic">{children}</em>,
-                code: ({ children }) => <code className="bg-gray-200 text-gray-800 px-1 py-0.5 rounded text-xs font-mono">{children}</code>,
-                blockquote: ({ children }) => <blockquote className="border-l-3 border-blue-400 pl-3 py-1 bg-blue-50 italic text-gray-700 my-2 rounded-r">{children}</blockquote>,
-                table: ({ children }) => (
-                  <div className="overflow-x-auto my-2">
-                    <table className="border-collapse border border-gray-300 text-xs w-full">{children}</table>
-                  </div>
-                ),
-                th: ({ children }) => <th className="border border-gray-300 px-2 py-1 bg-gray-100 font-semibold text-left">{children}</th>,
-                td: ({ children }) => <td className="border border-gray-300 px-2 py-1">{children}</td>,
-              }}
-                >
-                  {message.content}
-                </ReactMarkdown>
-              </div>
-            )}
+                  // Minimal custom styling - let markdown render naturally
+                  p: ({ ...props }) => <p className="mb-3 leading-relaxed" {...props} />,
+                  ul: ({ ...props }) => <ul className="list-disc ml-4 mb-3 space-y-1" {...props} />,
+                  ol: ({ ...props }) => <ol className="list-decimal ml-4 mb-3 space-y-1" {...props} />,
+                  li: ({ ...props }) => <li className="leading-relaxed" {...props} />,
+                  h1: ({ ...props }) => <h1 className="text-lg font-bold mb-3 mt-2" {...props} />,
+                  h2: ({ ...props }) => <h2 className="text-base font-bold mb-2 mt-2" {...props} />,
+                  h3: ({ ...props }) => <h3 className="text-sm font-semibold mb-2 mt-2" {...props} />,
+                  strong: ({ ...props }) => <strong className="font-semibold" {...props} />,
+                  em: ({ ...props }) => <em className="italic" {...props} />,
+                  code: ({ ...props }) => <code className="bg-gray-100 text-gray-800 px-1 py-0.5 rounded text-sm font-mono" {...props} />,
+                  blockquote: ({ ...props }) => <blockquote className="border-l-4 border-blue-400 pl-4 py-2 bg-blue-50 italic text-gray-700 my-3 rounded-r" {...props} />,
+                }}
+              >
+                {cleanContent(message.content)}
+              </ReactMarkdown>
+            </div>
+          )}
           
           {isStreaming && (
             <div className="flex items-center gap-1 mt-1">

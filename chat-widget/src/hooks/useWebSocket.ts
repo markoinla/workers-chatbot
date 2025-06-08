@@ -11,8 +11,10 @@ interface UseWebSocketProps {
 export function useWebSocket({ url, userId, projectId }: UseWebSocketProps) {
   const ws = useRef<WebSocket | null>(null)
   const reconnectTimeout = useRef<NodeJS.Timeout>()
+  const initialConnectionTimeout = useRef<NodeJS.Timeout>()
   const reconnectAttempts = useRef(0)
   const maxReconnectAttempts = 5
+  const isFirstConnection = useRef(true)
 
   const {
     setConnecting,
@@ -48,7 +50,9 @@ export function useWebSocket({ url, userId, projectId }: UseWebSocketProps) {
       ws.current.onopen = () => {
         console.log('WebSocket connected')
         setConnected(true)
+        setConnecting(false)
         reconnectAttempts.current = 0
+        isFirstConnection.current = false
       }
 
       ws.current.onmessage = (event) => {
@@ -61,8 +65,13 @@ export function useWebSocket({ url, userId, projectId }: UseWebSocketProps) {
       }
 
       ws.current.onclose = (event) => {
-        console.log('WebSocket closed:', event.code, event.reason)
         setConnected(false)
+        setConnecting(false)
+        
+        // Don't log errors for the first connection attempt (React StrictMode)
+        if (!isFirstConnection.current) {
+          console.log('WebSocket closed:', event.code, event.reason)
+        }
         
         if (!event.wasClean && reconnectAttempts.current < maxReconnectAttempts) {
           const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 10000)
@@ -74,9 +83,13 @@ export function useWebSocket({ url, userId, projectId }: UseWebSocketProps) {
       }
 
       ws.current.onerror = (error) => {
-        console.error('WebSocket error:', error)
-        setError('Connection failed. Please try again.')
+        // Only log errors and set error state after the first connection attempt
+        if (!isFirstConnection.current) {
+          console.error('WebSocket error:', error)
+          setError('Connection failed. Please try again.')
+        }
         setConnected(false)
+        setConnecting(false)
       }
 
     } catch (error) {
@@ -169,16 +182,24 @@ export function useWebSocket({ url, userId, projectId }: UseWebSocketProps) {
     if (reconnectTimeout.current) {
       clearTimeout(reconnectTimeout.current)
     }
+    if (initialConnectionTimeout.current) {
+      clearTimeout(initialConnectionTimeout.current)
+    }
     if (ws.current) {
       ws.current.close(1000, 'User disconnected')
       ws.current = null
     }
     setConnected(false)
-  }, [setConnected])
+    setConnecting(false)
+  }, [setConnected, setConnecting])
 
-  // Connect on mount, disconnect on unmount
+  // Connect on mount with delay to avoid React StrictMode issues
   useEffect(() => {
-    connect()
+    // Add a small delay for the initial connection to avoid React StrictMode double-effect issues
+    initialConnectionTimeout.current = setTimeout(() => {
+      connect()
+    }, 250)
+    
     return () => {
       disconnect()
     }

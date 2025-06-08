@@ -1,4 +1,4 @@
-import { ChatPanel } from '@/components/ChatPanel'
+import { ChatWidget } from '@/components/ChatWidget'
 import { useWebSocket } from '@/hooks/useWebSocket'
 
 function App() {
@@ -18,7 +18,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-transparent">
-      <ChatPanel onSendMessage={sendMessage} />
+      <ChatWidget onSendMessage={sendMessage} />
     </div>
   )
 }

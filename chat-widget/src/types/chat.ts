@@ -4,6 +4,8 @@ import type { ChatMessage } from '../../../shared/types/messages';
 
 export interface ChatState {
   isOpen: boolean;
+  isExpanded: boolean;
+  mode: 'popup' | 'sidebar';
   isConnected: boolean;
   isConnecting: boolean;
   messages: ChatMessage[];

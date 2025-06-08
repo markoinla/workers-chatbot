@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
-import { X, MessageCircle, Wifi, WifiOff } from 'lucide-react'
+import { X, MessageCircle, Wifi, WifiOff, Maximize2, Minimize2, PanelRight } from 'lucide-react'
 import { ChatBubble } from './ChatBubble'
 import { MessageInput } from './MessageInput'
 import { useChatStore } from '@/stores/chatStore'
@@ -18,11 +18,14 @@ interface ChatPanelProps {
 export function ChatPanel({ className, onSendMessage }: ChatPanelProps) {
   const {
     isOpen,
+    isExpanded,
     isConnected,
     isConnecting,
     messages,
     error,
     toggleChat,
+    toggleExpanded,
+    setMode,
   } = useChatStore()
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -55,8 +58,10 @@ export function ChatPanel({ className, onSendMessage }: ChatPanelProps) {
 
   return (
     <Card className={cn(
-      'fixed bottom-4 right-4 w-96 h-[32rem] flex flex-col shadow-xl z-50',
-      'bg-white border border-gray-200',
+      'fixed flex flex-col shadow-xl z-50 bg-white border border-gray-200 transition-all duration-300 ease-in-out',
+      isExpanded 
+        ? 'top-4 left-4 right-4 bottom-4 w-auto h-auto' 
+        : 'bottom-4 right-4 w-[28rem] h-[40rem]',
       className
     )}>
       {/* Header */}
@@ -67,10 +72,10 @@ export function ChatPanel({ className, onSendMessage }: ChatPanelProps) {
         </CardTitle>
         <div className="flex items-center gap-2">
           {/* Connection Status */}
-          <Badge variant={isConnected ? 'default' : 'secondary'} className="text-xs">
+          <Badge variant={isConnected ? 'default' : isConnecting ? 'secondary' : 'outline'} className="text-xs">
             {isConnecting ? (
               <>
-                <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse mr-1" />
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse mr-1" />
                 Connecting...
               </>
             ) : isConnected ? (
@@ -85,6 +90,33 @@ export function ChatPanel({ className, onSendMessage }: ChatPanelProps) {
               </>
             )}
           </Badge>
+          
+          {/* Mode Toggle Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setMode('sidebar')}
+            className="h-8 w-8"
+            title="Switch to sidebar mode"
+          >
+            <PanelRight className="h-4 w-4" />
+          </Button>
+
+          {/* Expand/Contract Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleExpanded}
+            className="h-8 w-8"
+            title={isExpanded ? 'Minimize chat' : 'Expand chat'}
+          >
+            {isExpanded ? (
+              <Minimize2 className="h-4 w-4" />
+            ) : (
+              <Maximize2 className="h-4 w-4" />
+            )}
+          </Button>
+          
           <Button
             variant="ghost"
             size="icon"
@@ -111,8 +143,11 @@ export function ChatPanel({ className, onSendMessage }: ChatPanelProps) {
             {messages.length === 0 ? (
               <div className="text-center text-gray-500 py-8">
                 <MessageCircle className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                <p className="text-sm">
-                  Welcome! How can I help you today?
+                <p className="text-lg font-bold">
+                  Welcome to Ladders AI!
+                </p>
+                <p className="text-md font-semibold">
+                  Ask me anything about your project!
                 </p>
               </div>
             ) : (
@@ -133,7 +168,7 @@ export function ChatPanel({ className, onSendMessage }: ChatPanelProps) {
         disabled={!isConnected}
         placeholder={
           isConnected 
-            ? "Type your message..." 
+            ? "Type your question..." 
             : "Connecting to chat..."
         }
       />
