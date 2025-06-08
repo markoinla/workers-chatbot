@@ -6,13 +6,26 @@ export interface Env {
 
 // Configuration for the chat assistant
 const CHAT_CONFIG = {
-  // Model to use for AI responses
+  // Model to use for AI responses - using reliable, tested model
   model: "@cf/meta/llama-3.1-8b-instruct-fast",
   
-  // Search configuration - Reduced to avoid overwhelming the model
-  maxResults: 3,         // Much smaller set of documents
-  scoreThreshold: 0.4,   // Higher threshold for better quality matches
-  maxTokens: 1000,       // Smaller response limit
+  // Search configuration - Conservative settings for reliability
+  maxResults: 5,         // Good balance of context vs performance
+  scoreThreshold: 0.3,   // Lower threshold for more comprehensive results
+  maxTokens: 1500,       // Reasonable response limit
+  
+  // Message appended to every user query (optional)
+  queryAppend: `
+`,
+
+  // Enhanced but concise system prompt
+  systemPrompt: `You are an expert AI assistant specializing in architectural document analysis and project planning. 
+
+##Guidelines you must follow:
+**Never mention file names, document sources, or metadata in your responses**
+**Never include details like this "user-123/webhook-test-1749327626988/Firehouse%20Subs%20-%20London(BidSet).pdf" in your responses**
+**Never include details about the document sources in your responses**
+`
 };
 
 export class ChatSession {
@@ -83,12 +96,17 @@ export class ChatSession {
     if (message.type === 'user_message') {
       const originalMessage = message.data.content;
       
-      // For now, let's test without query modifications
-      const userMessage = originalMessage;
+      // Append additional message if configured
+      const userMessage = CHAT_CONFIG.queryAppend ? 
+        originalMessage + CHAT_CONFIG.queryAppend : 
+        originalMessage;
+
+      console.log('Original user message:', originalMessage);
+      console.log('Enhanced user message:', userMessage);
 
       const messageId = message.messageId || `msg_${Date.now()}`;
       
-      // Store original user message in KV (without instructions)
+      // Store original user message in KV (without the appended instructions)
       await this.persistMessage({
         id: messageId,
         content: originalMessage,
@@ -134,37 +152,86 @@ export class ChatSession {
         throw new Error('AUTORAG_NAMESPACE not configured');
       }
       
-      console.log('Using aiSearch...');
+      console.log('Using enhanced aiSearch with metadata filtering...');
+      
+      // Simplified aiSearch with only supported parameters
       const aiResponse = await this.env.AI.autorag(this.env.AUTORAG_NAMESPACE).aiSearch({
         query: query,
         model: CHAT_CONFIG.model,
-        system_prompt: `Your are a AI assistant that answers questions about architectural documents. ### Imporant Never include file names in your answers.`,
+        system_prompt: CHAT_CONFIG.systemPrompt,
         max_num_results: CHAT_CONFIG.maxResults,
         rewrite_query: true,
         ranking_options: {
           score_threshold: CHAT_CONFIG.scoreThreshold
         },
-        stream: false
+        stream: false  // Disable streaming to ensure compatibility
       });
       
-      console.log('aiSearch response:', aiResponse);
-      console.log('aiSearch response length:', aiResponse?.response?.length || 0);
-      console.log('aiSearch response preview:', aiResponse?.response?.substring(0, 200) || 'No response');
+      console.log('Enhanced aiSearch response:', aiResponse);
       
+      // Handle streaming response
+      if (aiResponse && typeof aiResponse.getReader === 'function') {
+        return aiResponse;
+      }
+      
+      // Fallback to non-streaming response
       if (aiResponse?.response && aiResponse.response.trim().length > 0) {
-        console.log('✅ Using aiSearch response');
-        console.log('Raw response before cleaning:', aiResponse.response);
+        console.log('✅ Using aiSearch response (non-streaming)');
         return this.createStreamFromText(aiResponse.response);
       }
       
-      throw new Error('No response from AutoRAG aiSearch');
+      // Fallback strategy: Use search() to get relevant documents, then generate response
+      console.log('Fallback: Using search() for document retrieval...');
+      const searchResponse = await this.env.AI.autorag(this.env.AUTORAG_NAMESPACE).search({
+        query: query,
+        rewrite_query: true,
+        max_num_results: CHAT_CONFIG.maxResults,
+        ranking_options: {
+          score_threshold: CHAT_CONFIG.scoreThreshold
+        }
+      });
+      
+      if (searchResponse?.data && searchResponse.data.length > 0) {
+        // Generate response from search results using Workers AI directly
+        const context = searchResponse.data
+          .map((result: any) => result.content.map((c: any) => c.text).join(' '))
+          .join('\n\n');
+        
+        const enhancedPrompt = `${CHAT_CONFIG.systemPrompt}
+
+Context from relevant documents:
+${context}
+
+User Question: ${query}
+
+Please provide a comprehensive answer based on the context above.`;
+        
+        const llmResponse = await this.env.AI.run(CHAT_CONFIG.model, {
+          messages: [{ role: "user", content: enhancedPrompt }],
+          max_tokens: CHAT_CONFIG.maxTokens,
+          stream: false
+        });
+        
+        if (llmResponse?.response) {
+          return this.createStreamFromText(llmResponse.response);
+        }
+      }
+      
+      throw new Error('No response from AutoRAG aiSearch or search fallback');
       
     } catch (error) {
       console.error('AutoRAG error details:', error);
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Error message:', errorMessage);
       
-      const fallbackMessage = `I'm having trouble accessing the knowledge base. Error: ${errorMessage}`;
+      const fallbackMessage = `I'm having trouble accessing the knowledge base right now. This might be due to:
+      
+- Temporary connectivity issues with the document database
+- The specific information you're looking for might not be indexed yet
+- The query might need to be rephrased for better results
+
+Please try rephrasing your question or ask about a different aspect of the project. I'm here to help with architectural documents, project planning, and technical specifications.`;
+      
       return this.createStreamFromText(fallbackMessage);
     }
   }
@@ -172,17 +239,37 @@ export class ChatSession {
   private cleanResponse(text: string): string {
     console.log('Original text:', text);
     
-    // Minimal cleaning to test
+    // Enhanced cleaning based on AutoRAG best practices
     const cleaned = text
-      // Remove only the most obvious metadata
+      // Remove AutoRAG metadata and system artifacts
       .replace(/\[CONTENT TRIMMED[^\]]*\]/gi, '')
       .replace(/\[[^\]]*Firehouse[^\]]*\]/gi, '')
       .replace(/<\/document[^>]*>/gi, '')
+      .replace(/<document[^>]*>/gi, '')
+      .replace(/\[\/INST\]/gi, '')
+      .replace(/\[INST\]/gi, '')
+      
+      // Clean up common AutoRAG artifacts
+      .replace(/Based on the provided documents?,?\s*/gi, '')
+      .replace(/According to the (available\s+)?(documents?|information)\s*,?\s*/gi, '')
+      .replace(/The (available\s+)?(documents?|files?)\s+(indicate|show|state|mention)\s+that\s*/gi, '')
       .replace(/is listed as the architect in the provided documents/gi, 'is the architect')
       .replace(/The available at \|/gi, '')
-      // Basic cleanup
-      .replace(/[ \t]+/g, ' ')
-      .replace(/\n\s*\n\s*\n/g, '\n\n')
+      
+      // Remove file references and metadata
+      .replace(/\b[a-zA-Z0-9._-]+\.(pdf|doc|docx|txt|md)\b/gi, '')
+      .replace(/\bfile\s*:\s*[^\s]+/gi, '')
+      .replace(/\bsource\s*:\s*[^\s]+/gi, '')
+      
+      // Clean up formatting artifacts
+      .replace(/\|\s*$|^\s*\|/gm, '')  // Remove trailing/leading pipes
+      .replace(/\s*\|\s*/g, ' ')        // Replace internal pipes with spaces
+      .replace(/\n\s*\n\s*\n+/g, '\n\n') // Normalize multiple line breaks
+      .replace(/[ \t]+/g, ' ')          // Normalize whitespace
+      .replace(/^\s+|\s+$/gm, '')       // Trim lines
+      
+      // Improve readability
+      .replace(/([.!?])\s*([A-Z])/g, '$1 $2') // Ensure proper sentence spacing
       .trim();
     
     console.log('Cleaned text:', cleaned);
