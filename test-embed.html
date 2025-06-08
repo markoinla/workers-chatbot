@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Widget Embed Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        code {
+            background: #e1e1e1;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 Chat Widget Embed Test</h1>
+    
+    <div class="container">
+        <h2>How to Use</h2>
+        <p>Simply add this script tag to any website:</p>
+        <div class="code-block">
+&lt;script 
+  src="https://chat-worker.m-6bb.workers.dev/embed.js" 
+  data-user="user-123" 
+  data-project="my-project-456"&gt;
+&lt;/script&gt;
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Features</h2>
+        <ul>
+            <li>✅ <strong>Dynamic Configuration</strong>: Set userId and projectId via data attributes</li>
+            <li>✅ <strong>AutoRAG Search</strong>: Searches through your uploaded documents</li>
+            <li>✅ <strong>OpenAI Generation</strong>: High-quality responses using gpt-4o-mini</li>
+            <li>✅ <strong>Real-time Streaming</strong>: See responses as they're generated</li>
+            <li>✅ <strong>Multi-tenant</strong>: Isolated data per user/project</li>
+            <li>✅ <strong>Responsive</strong>: Works on desktop and mobile</li>
+            <li>✅ <strong>Lightweight</strong>: ~4KB embed script</li>
+        </ul>
+    </div>
+
+    <div class="container">
+        <h2>Configuration Options</h2>
+        <ul>
+            <li><code>data-user</code> - <strong>Required</strong>: User identifier</li>
+            <li><code>data-project</code> - <strong>Optional</strong>: Project identifier</li>
+            <li><code>data-position</code> - <strong>Optional</strong>: "bottom-right" or "bottom-left" (default: bottom-right)</li>
+            <li><code>data-theme</code> - <strong>Optional</strong>: "light", "dark", or "auto" (default: auto)</li>
+        </ul>
+    </div>
+
+    <p>👆 Look for the chat bubble in the bottom-right corner!</p>
+    <p>The chat widget should load with your configuration and connect to the AutoRAG backend.</p>
+
+    <!-- The actual embed script -->
+    <script 
+        src="https://chat-worker.m-6bb.workers.dev/embed.js" 
+        data-user="demo-user-123" 
+        data-project="demo-project-456"
+        data-position="bottom-right">
+    </script>
+</body>
+</html> 

@@ -1,50 +1,4 @@
-import { ChatSession } from './durable-object';
-
-export interface Env {
-  AI: any;
-  CHAT_STORAGE: KVNamespace;
-  CHAT_SESSION: DurableObjectNamespace;
-  AUTORAG_NAMESPACE: string;
-  OPENAI_API_KEY: string;
-}
-
-export default {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    const url = new URL(request.url);
-    
-    // Handle CORS
-    if (request.method === 'OPTIONS') {
-      return new Response(null, {
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        },
-      });
-    }
-
-    // WebSocket upgrade for chat sessions
-    if (url.pathname.startsWith('/socket/')) {
-      const sessionId = url.pathname.split('/')[2];
-      if (!sessionId) {
-        return new Response('Session ID required', { status: 400 });
-      }
-
-      // Get Durable Object for this session
-      const id = env.CHAT_SESSION.idFromName(sessionId);
-      const chatSession = env.CHAT_SESSION.get(id);
-      
-      return chatSession.fetch(request);
-    }
-
-    // Health check
-    if (url.pathname === '/health') {
-      return new Response('OK', { status: 200 });
-    }
-
-    // Serve embed script
-    if (url.pathname === '/embed.js') {
-      const embedScript = `(function() {
+(function() {
   'use strict';
   
   // Get the script tag that loaded this embed
@@ -61,7 +15,7 @@ export default {
     position: currentScript.getAttribute('data-position') || 'bottom-right',
     theme: currentScript.getAttribute('data-theme') || 'auto',
     workerUrl: currentScript.getAttribute('data-worker-url') || 'https://chat-worker.m-6bb.workers.dev',
-    widgetUrl: currentScript.getAttribute('data-widget-url') || 'http://localhost:5173'
+    widgetUrl: currentScript.getAttribute('data-widget-url') || 'https://chat-widget.m-6bb.workers.dev'
   };
   
   // Validate required config
@@ -94,8 +48,10 @@ export default {
     'z-index: 999999',
     'pointer-events: auto',
     'transition: all 0.3s ease',
+    // Initial collapsed size
     'width: 70px',
     'height: 70px',
+    // Position based on config
     config.position === 'bottom-left' ? 'bottom: 20px; left: 20px' : 'bottom: 20px; right: 20px'
   ].join('; ');
   
@@ -107,6 +63,7 @@ export default {
   
   // PostMessage communication handler
   function handleMessage(event) {
+    // Security: verify origin
     if (event.origin !== new URL(config.widgetUrl).origin) {
       return;
     }
@@ -123,9 +80,11 @@ export default {
       case 'TOGGLE_CHAT':
         state.isOpen = !state.isOpen;
         if (state.isOpen) {
+          // Expanded size
           iframe.style.width = '400px';
           iframe.style.height = '600px';
         } else {
+          // Collapsed size
           iframe.style.width = '70px';
           iframe.style.height = '70px';
         }
@@ -144,10 +103,16 @@ export default {
     }
   }
   
+  // Add message listener
   window.addEventListener('message', handleMessage, false);
+  
+  // Initial iframe styling (hidden until loaded)
   iframe.style.opacity = '0';
+  
+  // Add iframe to page
   document.body.appendChild(iframe);
   
+  // Cleanup function (optional - for dynamic removal)
   window.ChatWidget = {
     remove: function() {
       window.removeEventListener('message', handleMessage, false);
@@ -160,20 +125,4 @@ export default {
     }
   };
   
-})();`;
-
-      return new Response(embedScript, {
-        headers: { 
-          'Content-Type': 'application/javascript',
-          'Access-Control-Allow-Origin': '*',
-          'Cache-Control': 'public, max-age=3600'
-        },
-      });
-    }
-
-    return new Response('Not Found', { status: 404 });
-  },
-};
-
-// Export the Durable Object class
-export { ChatSession }; 
+})(); 

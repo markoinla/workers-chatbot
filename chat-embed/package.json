@@ -1,0 +1,14 @@
+{
+  "name": "chat-embed",
+  "version": "1.0.0",
+  "description": "Embeddable chat widget script",
+  "main": "src/embed.js",
+  "scripts": {
+    "build": "mkdir -p dist && cp src/embed.js dist/embed.js",
+    "minify": "npm run build && terser dist/embed.js -o dist/embed.min.js --compress --mangle",
+    "dev": "npm run build"
+  },
+  "devDependencies": {
+    "terser": "^5.20.0"
+  }
+} 
