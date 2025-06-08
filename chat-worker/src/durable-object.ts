@@ -17,9 +17,9 @@ const CHAT_CONFIG = {
   openaiModel: "gpt-4.1",
   
   // Search configuration - Conservative settings for reliability
-  maxResults: 5,         // Good balance of context vs performance
-  scoreThreshold: 0.3,   // Lower threshold for more comprehensive results
-  maxTokens: 1500,       // Reasonable response limit
+  maxResults: 10,         // Good balance of context vs performance
+  scoreThreshold: 0.2,   // Lower threshold for more comprehensive results
+  maxTokens: 2000,       // Reasonable response limit
   
   // Message appended to every user query (optional)
   queryAppend: `
