@@ -141,7 +141,7 @@ export class ChatSession {
         return `From ${result.filename}:\n${content}`;
       }).join('\n\n---\n\n');
       
-      // Use Workers AI directly to generate response with proper text streaming
+      // Use Workers AI directly to generate response - try non-streaming first
       const prompt = `Based on the following context from the knowledge base, please answer the user's question: "${query}"
 
 Context:
@@ -150,35 +150,35 @@ ${context}
 Please provide a helpful and accurate response based on the information above.`;
 
       console.log('Using Workers AI to generate response...');
+      console.log('Prompt length:', prompt.length);
+      
       const response = await this.env.AI.run('@cf/meta/llama-3.3-70b-instruct-sd', {
         prompt: prompt,
-        stream: true,
-        max_tokens: 1000
+        stream: false,
+        max_tokens: 500
       });
 
-      // Convert the Workers AI response to a proper text stream
+      console.log('AI response:', JSON.stringify(response));
+
+      // Convert non-streaming response to a stream
+      const responseText = response?.response || 'No response generated';
+      
       return new ReadableStream({
-        async start(controller) {
-          if (response && response.readable) {
-            const reader = response.readable.getReader();
-            const decoder = new TextDecoder();
-            
-            try {
-              while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                
-                // Decode bytes to text and enqueue
-                const text = decoder.decode(value, { stream: true });
-                controller.enqueue(text);
-              }
-            } finally {
-              reader.releaseLock();
+        start(controller) {
+          const words = responseText.split(' ');
+          let index = 0;
+          
+          const sendNext = () => {
+            if (index < words.length) {
+              controller.enqueue(words[index] + ' ');
+              index++;
+              setTimeout(sendNext, 50); // Simulate streaming
+            } else {
               controller.close();
             }
-          } else {
-            controller.close();
-          }
+          };
+          
+          sendNext();
         }
       });
       
