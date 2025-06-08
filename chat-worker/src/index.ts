@@ -5,6 +5,7 @@ export interface Env {
   CHAT_STORAGE: KVNamespace;
   CHAT_SESSION: DurableObjectNamespace;
   AUTORAG_NAMESPACE: string;
+  OPENAI_API_KEY: string;
 }
 
 export default {

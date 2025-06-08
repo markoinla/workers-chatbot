@@ -10,7 +10,9 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@cloudflare/workers-types": "^4.20240129.0"
+    "@cloudflare/workers-types": "^4.20240129.0",
+    "@ai-sdk/openai": "^0.0.66",
+    "ai": "^3.4.32"
   },
   "devDependencies": {
     "typescript": "^5.0.0",

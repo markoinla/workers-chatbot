@@ -1,13 +1,20 @@
+import { createOpenAI } from "@ai-sdk/openai";
+import { generateText } from "ai";
+
 export interface Env {
   AI: any;
   CHAT_STORAGE: any;
   AUTORAG_NAMESPACE: string;
+  OPENAI_API_KEY: string;
 }
 
 // Configuration for the chat assistant
 const CHAT_CONFIG = {
   // Model to use for AI responses - using reliable, tested model
   model: "@cf/meta/llama-3.1-8b-instruct-fast",
+  
+  // OpenAI model configuration
+  openaiModel: "gpt-4.1",
   
   // Search configuration - Conservative settings for reliability
   maxResults: 5,         // Good balance of context vs performance
@@ -93,8 +100,13 @@ export class ChatSession {
     userId: string,
     projectId?: string
   ): Promise<void> {
+    console.log(`📨 Processing message for user: ${userId}, project: ${projectId}`);
+    console.log(`📝 Message type: ${message.type}`);
+    
     if (message.type === 'user_message') {
       const originalMessage = message.data.content;
+      console.log(`💬 User message received: "${originalMessage}"`);
+      console.log(`🔧 Current OpenAI model configured: ${CHAT_CONFIG.openaiModel}`);
       
       // Append additional message if configured
       const userMessage = CHAT_CONFIG.queryAppend ? 
@@ -143,9 +155,10 @@ export class ChatSession {
 
   private async queryAutoRAG(query: string, scopeFilter: string): Promise<ReadableStream> {
     try {
-      console.log(`Querying AutoRAG for: "${query}"`);
-      console.log(`Namespace: ${this.env.AUTORAG_NAMESPACE}`);
-      console.log(`Scope filter: ${scopeFilter}`);
+      console.log(`🔍 Querying AutoRAG for: "${query}"`);
+      console.log(`📁 Namespace: ${this.env.AUTORAG_NAMESPACE}`);
+      console.log(`🏷️ Scope filter: ${scopeFilter}`);
+      console.log(`⚡ Attempting AutoRAG aiSearch first...`);
       
       // Check if namespace exists
       if (!this.env.AUTORAG_NAMESPACE) {
@@ -154,8 +167,10 @@ export class ChatSession {
       
       console.log('Using enhanced aiSearch with metadata filtering...');
       
-      // Simplified aiSearch with only supported parameters
-      const aiResponse = await this.env.AI.autorag(this.env.AUTORAG_NAMESPACE).aiSearch({
+      // Temporarily disable aiSearch to test OpenAI fallback
+      // const aiResponse = await this.env.AI.autorag(this.env.AUTORAG_NAMESPACE).aiSearch({
+      const aiResponse = null; // Force fallback to OpenAI
+      const disabledAiResponse = await this.env.AI.autorag(this.env.AUTORAG_NAMESPACE).aiSearch({
         query: query,
         model: CHAT_CONFIG.model,
         system_prompt: CHAT_CONFIG.systemPrompt,
@@ -170,15 +185,17 @@ export class ChatSession {
       console.log('Enhanced aiSearch response:', aiResponse);
       
       // Handle streaming response
-      if (aiResponse && typeof aiResponse.getReader === 'function') {
-        return aiResponse;
-      }
+      // if (aiResponse && typeof aiResponse.getReader === 'function') {
+      //   return aiResponse;
+      // }
       
       // Fallback to non-streaming response
-      if (aiResponse?.response && aiResponse.response.trim().length > 0) {
-        console.log('✅ Using aiSearch response (non-streaming)');
-        return this.createStreamFromText(aiResponse.response);
-      }
+      // if (aiResponse?.response && aiResponse.response.trim().length > 0) {
+      //   console.log('✅ Using aiSearch response (non-streaming)');
+      //   return this.createStreamFromText(aiResponse.response);
+      // }
+      
+      console.log('🔄 Skipping aiSearch, forcing OpenAI fallback for testing...');
       
       // Fallback strategy: Use search() to get relevant documents, then generate response
       console.log('Fallback: Using search() for document retrieval...');
@@ -192,28 +209,49 @@ export class ChatSession {
       });
       
       if (searchResponse?.data && searchResponse.data.length > 0) {
-        // Generate response from search results using Workers AI directly
-        const context = searchResponse.data
-          .map((result: any) => result.content.map((c: any) => c.text).join(' '))
-          .join('\n\n');
-        
-        const enhancedPrompt = `${CHAT_CONFIG.systemPrompt}
+        // Join all document chunks into a single string
+        const chunks = searchResponse.data
+          .map((item: any) => {
+            const data = item.content
+              .map((content: any) => {
+                return content.text;
+              })
+              .join("\n\n");
 
-Context from relevant documents:
-${context}
+            return `<file name="${item.filename}">${data}</file>`;
+          })
+          .join("\n\n");
 
-User Question: ${query}
-
-Please provide a comprehensive answer based on the context above.`;
-        
-        const llmResponse = await this.env.AI.run(CHAT_CONFIG.model, {
-          messages: [{ role: "user", content: enhancedPrompt }],
-          max_tokens: CHAT_CONFIG.maxTokens,
-          stream: false
+        // Generate response using OpenAI
+        const openai = createOpenAI({
+          apiKey: this.env.OPENAI_API_KEY,
         });
         
-        if (llmResponse?.response) {
-          return this.createStreamFromText(llmResponse.response);
+        const modelName = CHAT_CONFIG.openaiModel;
+        console.log(`🤖 Using OpenAI model: ${modelName}`);
+        
+        const generateResult = await generateText({
+          model: openai(modelName),
+          messages: [
+            {
+              role: "system",
+              content: CHAT_CONFIG.systemPrompt,
+            },
+            { role: "user", content: chunks },
+            { role: "user", content: query },
+          ],
+          maxTokens: CHAT_CONFIG.maxTokens,
+        });
+        
+        console.log(`✅ OpenAI response received. Model used: ${modelName}`);
+        console.log(`📊 Response metadata:`, {
+          usage: generateResult.usage,
+          finishReason: generateResult.finishReason,
+          responseLength: generateResult.text?.length || 0
+        });
+        
+        if (generateResult?.text) {
+          return this.createStreamFromText(generateResult.text);
         }
       }
       
