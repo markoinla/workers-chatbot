@@ -102,7 +102,7 @@ export class ChatSession {
       socket.send(JSON.stringify({
         type: 'assistant_message',
         messageId: `assistant_${messageId}`,
-        data: { content: 'Processing your request...', isComplete: false }
+        data: { content: 'Searching through plans...', isComplete: false }
       }));
 
       try {
@@ -138,7 +138,7 @@ export class ChatSession {
       const aiResponse = await this.env.AI.autorag(this.env.AUTORAG_NAMESPACE).aiSearch({
         query: query,
         model: CHAT_CONFIG.model,
-        system_prompt: `Answer questions directly and concisely. Do not mention sources or documents. State facts clearly.`,
+        system_prompt: `Your are a AI assistant that answers questions about architectural documents. ### Imporant Never include file names in your answers.`,
         max_num_results: CHAT_CONFIG.maxResults,
         rewrite_query: true,
         ranking_options: {
