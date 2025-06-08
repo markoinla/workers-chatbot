@@ -10,11 +10,11 @@ export interface Env {
 
 // Configuration for the chat assistant
 const CHAT_CONFIG = {
-  // Model to use for AI responses - using reliable, tested model
+  // Legacy Workers AI model (not used - we use OpenAI for better quality)
   model: "@cf/meta/llama-3.1-8b-instruct-fast",
   
-  // OpenAI model configuration
-  openaiModel: "gpt-4.1",
+  // OpenAI model configuration (primary generation model)
+  openaiModel: "gpt-4o-mini", // Best balance of quality/speed/cost
   
   // Search configuration - Conservative settings for reliability
   maxResults: 10,         // Good balance of context vs performance
@@ -165,40 +165,13 @@ export class ChatSession {
         throw new Error('AUTORAG_NAMESPACE not configured');
       }
       
-      console.log('Using enhanced aiSearch with metadata filtering...');
+      console.log('🔍 Using AutoRAG search() + OpenAI generation for best quality...');
       
-      // Temporarily disable aiSearch to test OpenAI fallback
-      // const aiResponse = await this.env.AI.autorag(this.env.AUTORAG_NAMESPACE).aiSearch({
-      const aiResponse = null; // Force fallback to OpenAI
-      const disabledAiResponse = await this.env.AI.autorag(this.env.AUTORAG_NAMESPACE).aiSearch({
-        query: query,
-        model: CHAT_CONFIG.model,
-        system_prompt: CHAT_CONFIG.systemPrompt,
-        max_num_results: CHAT_CONFIG.maxResults,
-        rewrite_query: true,
-        ranking_options: {
-          score_threshold: CHAT_CONFIG.scoreThreshold
-        },
-        stream: false  // Disable streaming to ensure compatibility
-      });
+      // Skip aiSearch completely - go straight to search() + OpenAI
+      // This gives us better control over the generation model
       
-      console.log('Enhanced aiSearch response:', aiResponse);
-      
-      // Handle streaming response
-      // if (aiResponse && typeof aiResponse.getReader === 'function') {
-      //   return aiResponse;
-      // }
-      
-      // Fallback to non-streaming response
-      // if (aiResponse?.response && aiResponse.response.trim().length > 0) {
-      //   console.log('✅ Using aiSearch response (non-streaming)');
-      //   return this.createStreamFromText(aiResponse.response);
-      // }
-      
-      console.log('🔄 Skipping aiSearch, forcing OpenAI fallback for testing...');
-      
-      // Fallback strategy: Use search() to get relevant documents, then generate response
-      console.log('Fallback: Using search() for document retrieval...');
+      // Use search() to get relevant documents, then generate with OpenAI
+      console.log('📚 Step 1: AutoRAG document search...');
       const searchResponse = await this.env.AI.autorag(this.env.AUTORAG_NAMESPACE).search({
         query: query,
         rewrite_query: true,
@@ -228,7 +201,7 @@ export class ChatSession {
         });
         
         const modelName = CHAT_CONFIG.openaiModel;
-        console.log(`🤖 Using OpenAI model: ${modelName}`);
+        console.log(`🤖 Step 2: OpenAI generation using model: ${modelName}`);
         
         const generateResult = await generateText({
           model: openai(modelName),
