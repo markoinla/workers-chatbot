@@ -15,7 +15,7 @@
     position: currentScript.getAttribute('data-position') || 'bottom-right',
     theme: currentScript.getAttribute('data-theme') || 'auto',
     workerUrl: currentScript.getAttribute('data-worker-url') || 'https://chat-worker.m-6bb.workers.dev',
-    widgetUrl: currentScript.getAttribute('data-widget-url') || 'https://chat-widget.m-6bb.workers.dev'
+    widgetUrl: currentScript.getAttribute('data-widget-url') || 'https://eaa079de.chat-widget-b54.pages.dev'
   };
   
   // Validate required config

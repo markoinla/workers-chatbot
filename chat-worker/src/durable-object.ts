@@ -14,7 +14,7 @@ const CHAT_CONFIG = {
   model: "@cf/meta/llama-3.1-8b-instruct-fast",
   
   // OpenAI model configuration (primary generation model)
-  openaiModel: "gpt-4o-mini", // Best balance of quality/speed/cost
+  openaiModel: "gpt-4.1-mini", // Best balance of quality/speed/cost
   
   // Search configuration - Conservative settings for reliability
   maxResults: 10,         // Good balance of context vs performance

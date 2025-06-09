@@ -41,10 +41,20 @@ export function ChatPanel({ className, onSendMessage }: ChatPanelProps) {
     }
   }
 
+  // Handle chat toggle for embedded mode
+  const handleToggleChat = () => {
+    toggleChat()
+    
+    // For embedded mode, send message to parent
+    if (window.parent !== window) {
+      window.parent.postMessage({ type: 'TOGGLE_CHAT' }, '*')
+    }
+  }
+
   if (!isOpen) {
     return (
       <Button
-        onClick={toggleChat}
+        onClick={handleToggleChat}
         className={cn(
           'fixed bottom-4 right-4 h-14 w-14 rounded-full shadow-lg z-50',
           'bg-blue-500 hover:bg-blue-600 text-white',
@@ -120,7 +130,7 @@ export function ChatPanel({ className, onSendMessage }: ChatPanelProps) {
           <Button
             variant="ghost"
             size="icon"
-            onClick={toggleChat}
+            onClick={handleToggleChat}
             className="h-8 w-8"
           >
             <X className="h-4 w-4" />
